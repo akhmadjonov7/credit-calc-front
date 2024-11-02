@@ -36,7 +36,7 @@
                      step="any"/>
           </div>
           <div class="col-4">
-            <q-select v-model="bean.is_annuity" :options="calc_types" outlined dense label="Kredit turi" map-options
+            <q-select v-model="bean.annuity_id" :options="calc_types" outlined dense label="Hisoblash turi" map-options
                       emit-value
                       option-label="name" option-value="id"/>
           </div>
@@ -84,15 +84,17 @@
               <span>yillik foiz stavkasi:</span>
               {{ cred_info.annual_interest_rate ? cred_info.annual_interest_rate : 0 }} %
             </div>
-<!--            <div class="col-2"><span>Kredit to'liq qiymati:</span>{{ cred_info.full_amount }} %</div>-->
+            <!--            <div class="col-2"><span>Kredit to'liq qiymati:</span>{{ cred_info.full_amount }} %</div>-->
           </div>
           <!-- end info section -->
           <div class="row flex justify-between q-mt-lg q-px-lg">
             <span class="text-bold text-h4 text-primary">Kredit ma'lumotlari</span>
-            <q-btn color="primary" @click="clear" :loading="loading">Bekor qilish</q-btn>
+            <q-btn color="primary" @click="clear">Bekor qilish</q-btn>
           </div>
           <!-- start table section -->
           <table class="table_info">
+            <thead>
+
             <tr class="bg-primary">
               <th>Oy</th>
               <th>Kredit balansi</th>
@@ -103,6 +105,9 @@
               <th>Foiz</th>
               <th>Jami oylik to'lov</th>
             </tr>
+            </thead>
+            <tbody>
+
             <tr v-for="item in data">
               <td>{{ item.month }}</td>
               <td>{{ number_format(item.credit_balance, 2) }}</td>
@@ -123,6 +128,7 @@
               <td>{{ number_format(data.reduce((sum, item) => sum + item.percentage_debt, 0), 2) }}</td>
               <td>{{ number_format(data.reduce((sum, item) => sum + item.total_monthly_payment, 0), 2) }}</td>
             </tr>
+            </tbody>
           </table>
           <!-- end table section -->
         </div>
@@ -146,7 +152,8 @@ const bean = ref({
   amount: null,
   term: null,
   annual_interest_rate: 1,
-  is_annuity: 1,
+  is_annuity: false,
+  annuity_id: 1,
   currency_id: 1,
   insurance: 0,
   notary: 0,
@@ -160,7 +167,8 @@ const beanDefault = ref({
   amount: null,
   term: null,
   annual_interest_rate: 1,
-  is_annuity: 1,
+  is_annuity: false,
+  annuity_id: 1,
   currency_id: 1,
   insurance: 0,
   notary: 0,
@@ -284,8 +292,6 @@ const currency = ref({})
 const loading = ref(false)
 
 
-
-
 function update(opt) {
   type.value = types.value.filter(el => el.id === opt)[0];
   bean.value.amount = type.value.min_amount;
@@ -360,7 +366,7 @@ function onSubmit() {
       cred_info.value.annual_interest_rate = bean.value.annual_interest_rate;
       data.value.splice(0, data.value.length, ...res.data.data);
       showInfo.value = true;
-    }else {
+    } else {
       alert(res.data.message);
     }
   }).catch(err => console.error(err))
@@ -369,7 +375,7 @@ function onSubmit() {
     });
 }
 
-function clear(){
+function clear() {
   bean.value = beanDefault.value;
   currency.value = currencies.value[0];
   type.value = types.value[0]
@@ -387,6 +393,10 @@ watch(() => amount.value, () => {
 
 watch(() => term.value, () => {
   bean.value.term = term.value
+})
+
+watch(() => bean.value.annuity_id, () => {
+  bean.value.is_annuity = bean.value.annuity_id !== 1;
 })
 
 onMounted(() => {
